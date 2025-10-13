@@ -50,6 +50,12 @@ export class ProfileService {
     this.logger.logger(`Fetching profile for id: ${id}`, context);
     return this.repository.findById(id);
   }
+ 
+  async findByAuthId(authId: string): Promise<Profile | null> {
+    const context = { module: 'ProfileService', method: 'findByAuthId' };
+    this.logger.logger(`Fetching profile for authId: ${authId}`, context);
+    return this.repository.findByAuthId(authId);
+  }
 
   async findByRole(role: Role): Promise<Profile[]> {
     const context = { module: 'ProfileService', method: 'findByRole' };

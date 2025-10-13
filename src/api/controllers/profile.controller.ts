@@ -74,7 +74,24 @@ export class ProfileController {
     const newProfile = await this.profileService.create(profile);
     return this.responseService.created(newProfile, 'Profile created successfully');
   }
+ 
+  @Get('me')
+  @ApiOperation({ summary: 'Get my profile' })
+  @ApiResponse({ status: 200, description: 'Returns current user profile.', type: Profile })
+  @ApiResponse({ status: 404, description: 'Profile not found.' })
+  async getMyProfile(
+    @CurrentUserId() requestingUserId: string,
+  ): Promise<SuccessResponseDto<Profile>> {
+    const profile = await this.profileService.findByAuthId(requestingUserId);
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
 
+    return this.responseService.retrieved(profile, 'Profile retrieved successfully');
+  }
+
+  @Roles(Role.ADMIN)
+  @UseGuards(RolesGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'Returns user profile.' })

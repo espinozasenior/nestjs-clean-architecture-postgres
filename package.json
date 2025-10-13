@@ -10,7 +10,7 @@
     "start": "ts-node -r tsconfig-paths/register src/main.ts",
     "start:dev": "concurrently --handle-input \"wait-on dist/main.js && nodemon\" \"tsc -w -p tsconfig.build.json\" ",
     "start:debug": "nodemon --config nodemon-debug.json",
-    "prestart:prod": "rimraf dist && npm run build",
+    "prestart:prod": "rimraf dist && pnpm run build",
     "start:prod": "node dist/main.js",
     "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build",
     "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build",
@@ -43,6 +43,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "@types/uuid": "^10.0.0",
     "@willsoto/nestjs-prometheus": "^6.0.2",
+    "axios": "^1.7.9",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
@@ -73,6 +74,7 @@
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.20",
     "@types/node": "^22.15.30",
+    "@types/ms": "^2.1.0",
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
@@ -126,5 +128,6 @@
     "@application": "dist/application/*",
     "@infrastructure": "dist/infrastructure/*",
     "@api": "dist/api/*"
-  }
+  },
+  "packageManager": "pnpm@10.18.2"
 }

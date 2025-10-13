@@ -7,7 +7,7 @@ services:
     volumes:
       - ./src:/usr/src/app/src
       - /usr/src/app/node_modules
-    command: npm run start:dev
+    command: pnpm run start:dev
     ports:
       - '${APP_PORT}:${APP_PORT}'
       - '9229:9229'

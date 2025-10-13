@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: nestjs-api
-    command: npm run start:prod
+    command: pnpm run start:prod
     ports:
       - '${APP_PORT}:${APP_PORT}'
     env_file:
