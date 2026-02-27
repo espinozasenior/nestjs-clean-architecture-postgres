@@ -1,4 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
 import { LoggerService } from '@application/services/logger.service';
 
 export interface MobileOAuthConfig {
@@ -89,7 +90,11 @@ export class MobileOAuthConfigService {
     const clientId = this.config[platform].clientId;
 
     if (!clientId) {
-      throw new BadRequestException(`Google OAuth client ID for ${platform} is not configured`);
+      throw new BadRequestException({
+        code: AuthError.GOOGLE_OAUTH_CLIENT_ID_NOT_CONFIGURED,
+        message: AuthErrorMessage[AuthError.GOOGLE_OAUTH_CLIENT_ID_NOT_CONFIGURED],
+        details: { platform },
+      });
     }
 
     return clientId;
@@ -102,7 +107,11 @@ export class MobileOAuthConfigService {
     const audience = this.config[platform].audience;
 
     if (!audience) {
-      throw new BadRequestException(`Google OAuth audience for ${platform} is not configured`);
+      throw new BadRequestException({
+        code: AuthError.GOOGLE_OAUTH_AUDIENCE_NOT_CONFIGURED,
+        message: AuthErrorMessage[AuthError.GOOGLE_OAUTH_AUDIENCE_NOT_CONFIGURED],
+        details: { platform },
+      });
     }
 
     return audience;
@@ -146,17 +155,27 @@ export class MobileOAuthConfigService {
     if (platform === 'ios') {
       const uri = process.env.GOOGLE_MOBILE_CALLBACK_IOS_URL;
       if (!uri) {
-        throw new BadRequestException('iOS redirect URI not configured');
+        throw new BadRequestException({
+          code: AuthError.IOS_REDIRECT_URI_NOT_CONFIGURED,
+          message: AuthErrorMessage[AuthError.IOS_REDIRECT_URI_NOT_CONFIGURED],
+        });
       }
       return uri;
     } else if (platform === 'android') {
       const uri = process.env.GOOGLE_MOBILE_CALLBACK_ANDROID_URL;
       if (!uri) {
-        throw new BadRequestException('Android redirect URI not configured');
+        throw new BadRequestException({
+          code: AuthError.ANDROID_REDIRECT_URI_NOT_CONFIGURED,
+          message: AuthErrorMessage[AuthError.ANDROID_REDIRECT_URI_NOT_CONFIGURED],
+        });
       }
       return uri;
     } else {
-      throw new BadRequestException(`Unsupported platform: ${platform}`);
+      throw new BadRequestException({
+        code: AuthError.UNSUPPORTED_PLATFORM,
+        message: AuthErrorMessage[AuthError.UNSUPPORTED_PLATFORM],
+        details: { platform },
+      });
     }
   }
 } 

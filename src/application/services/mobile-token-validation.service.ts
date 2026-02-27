@@ -1,6 +1,7 @@
 import { JWKSTokenValidationService } from '@application/services/jwks-token-validation.service';
 import { LoggerService } from '@application/services/logger.service';
 import { MobileOAuthConfigService } from '@application/services/mobile-oauth-config.service';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
 import { AuthDomainService } from '@domain/services/auth-domain.service';
 import {
   BadRequestException,
@@ -55,7 +56,10 @@ export class MobileTokenValidationService {
 
         if (!this.jwksTokenValidation.isJWKSInitialized()) {
           throw new UnauthorizedException(
-            'Unable to initialize JWT validation service',
+            {
+              code: AuthError.JWT_VALIDATION_SERVICE_UNAVAILABLE,
+              message: AuthErrorMessage[AuthError.JWT_VALIDATION_SERVICE_UNAVAILABLE],
+            },
           );
         }
       }
@@ -103,7 +107,10 @@ export class MobileTokenValidationService {
         throw new BadRequestException(error.message);
       }
 
-      throw new UnauthorizedException('Invalid ID token');
+      throw new UnauthorizedException({
+        code: AuthError.ID_TOKEN_INVALID_FORMAT,
+        message: AuthErrorMessage[AuthError.ID_TOKEN_INVALID_FORMAT],
+      });
     }
   }
 
@@ -152,7 +159,10 @@ export class MobileTokenValidationService {
       const { access_token } = tokenResponse.data;
 
       if (!access_token) {
-        throw new UnauthorizedException('No access token received from Google');
+        throw new UnauthorizedException({
+          code: AuthError.NO_ACCESS_TOKEN_RECEIVED,
+          message: AuthErrorMessage[AuthError.NO_ACCESS_TOKEN_RECEIVED],
+        });
       }
 
       // Get user info using the access token
@@ -180,10 +190,17 @@ export class MobileTokenValidationService {
         const errorData = error.response.data;
         if (errorData.error === 'invalid_grant') {
           throw new BadRequestException(
-            'Invalid authorization code or code verifier',
+            {
+              code: AuthError.INVALID_AUTHORIZATION_CODE_OR_VERIFIER,
+              message:
+                AuthErrorMessage[AuthError.INVALID_AUTHORIZATION_CODE_OR_VERIFIER],
+            },
           );
         }
-        throw new BadRequestException('Invalid authorization code');
+        throw new BadRequestException({
+          code: AuthError.INVALID_AUTHORIZATION_CODE,
+          message: AuthErrorMessage[AuthError.INVALID_AUTHORIZATION_CODE],
+        });
       }
 
       // Convert domain service errors to appropriate HTTP exceptions
@@ -196,7 +213,10 @@ export class MobileTokenValidationService {
         throw new BadRequestException(error.message);
       }
 
-      throw new UnauthorizedException('Failed to validate authorization code');
+      throw new UnauthorizedException({
+        code: AuthError.AUTHORIZATION_CODE_VALIDATION_FAILED,
+        message: AuthErrorMessage[AuthError.AUTHORIZATION_CODE_VALIDATION_FAILED],
+      });
     }
   }
 
@@ -248,7 +268,10 @@ export class MobileTokenValidationService {
         throw new UnauthorizedException(error.message);
       }
 
-      throw new UnauthorizedException('Failed to fetch user information');
+      throw new UnauthorizedException({
+        code: AuthError.USER_INFO_FETCH_FAILED,
+        message: AuthErrorMessage[AuthError.USER_INFO_FETCH_FAILED],
+      });
     }
   }
 }

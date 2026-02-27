@@ -9,6 +9,7 @@ import { CurrentUserId } from '@application/decorators/current-user.decorator';
 import { LoggingInterceptor } from '@application/interceptors/logging.interceptor';
 import { AuthService } from '@application/auth/auth.service';
 import { ResponseService } from '@application/services/response.service';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
 import {
   Body,
   Controller,
@@ -189,7 +190,10 @@ export class AuthController {
   async getProfile(@Param('id') id: string) {
     const user = await this.authService.findByAuthId(id);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: AuthError.USER_NOT_FOUND,
+        message: AuthErrorMessage[AuthError.USER_NOT_FOUND],
+      });
     }
     return this.responseService.retrieved(
       user,

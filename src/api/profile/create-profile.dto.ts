@@ -8,7 +8,7 @@ export class CreateProfileDto  {
   })
   @IsString()
   @IsNotEmpty()
-  authId: string;
+  readonly authId: string;
 
   @ApiProperty({
     description: 'The name of the user',
@@ -16,7 +16,7 @@ export class CreateProfileDto  {
   })
   @IsString()
   @IsNotEmpty()
-  name: string;
+  readonly name: string;
 
   @ApiProperty({
     description: 'The lastname of the user',
@@ -24,7 +24,7 @@ export class CreateProfileDto  {
   })
   @IsString()
   @IsNotEmpty()
-  lastname: string;
+  readonly lastname: string;
 
   @ApiProperty({
     description: 'The age of the user',
@@ -32,5 +32,5 @@ export class CreateProfileDto  {
   })
   @IsNumber()
   @IsNotEmpty()
-  age: number;
+  readonly age: number;
 }

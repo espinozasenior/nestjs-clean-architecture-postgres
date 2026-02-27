@@ -77,7 +77,10 @@ describe('Profile Controller', () => {
       },
     ];
 
-    jest.spyOn(service, 'find').mockImplementation(async () => profiles);
+    jest.spyOn(service, 'find').mockImplementation(async () => ({
+      data: profiles,
+      count: profiles.length,
+    }));
     const data = await controller.getAll();
     expect(data).toBeDefined();
     expect(has(data, 'data')).toBeTruthy();

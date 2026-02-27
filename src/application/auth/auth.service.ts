@@ -30,6 +30,7 @@ import { AppleTokenValidationService } from '@application/services/apple-token-v
 import { LoggerService } from '@application/services/logger.service';
 import { MobileOAuthConfigService } from '@application/services/mobile-oauth-config.service';
 import { MobileTokenValidationService } from '@application/services/mobile-token-validation.service';
+import { AuthError, AuthErrorMessage, ProfileError, ProfileErrorMessage } from '@application/shared/errors';
 import {
   GOOGLE_CALLBACK_URL,
   GOOGLE_CLIENT_ID,
@@ -145,19 +146,28 @@ export class AuthService {
     this.logger.logger(`Attempting to log in user ${email}.`, context);
 
     if (!this.authDomainService.isEmailValid(email)) {
-      throw new UnauthorizedException('Invalid email format');
+      throw new UnauthorizedException({
+        code: AuthError.INVALID_EMAIL_FORMAT,
+        message: AuthErrorMessage[AuthError.INVALID_EMAIL_FORMAT],
+      });
     }
 
     const auth = await this.authRepository.findByEmail(email, true);
 
     if (!auth) {
       this.logger.logger(`User ${email} not found.`, context);
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: AuthError.USER_NOT_FOUND,
+        message: AuthErrorMessage[AuthError.USER_NOT_FOUND],
+      });
     }
 
     if (!(await bcrypt.compare(password, auth.password))) {
       this.logger.warning(`Failed login attempt for user ${email}.`, context);
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException({
+        code: AuthError.INVALID_CREDENTIALS,
+        message: AuthErrorMessage[AuthError.INVALID_CREDENTIALS],
+      });
     }
 
     await this.authRepository.update(auth.id, {
@@ -210,12 +220,18 @@ export class AuthService {
 
       const auth = await this.authRepository.findById(payload.sub);
       if (!auth) {
-        throw new UnauthorizedException('User not found');
+        throw new UnauthorizedException({
+          code: AuthError.USER_NOT_FOUND,
+          message: AuthErrorMessage[AuthError.USER_NOT_FOUND],
+        });
       }
 
       // Check if refresh token is still valid in database
       if (!auth.currentHashedRefreshToken) {
-        throw new UnauthorizedException('Refresh token revoked');
+        throw new UnauthorizedException({
+          code: AuthError.REFRESH_TOKEN_REVOKED,
+          message: AuthErrorMessage[AuthError.REFRESH_TOKEN_REVOKED],
+        });
       }
 
       const isRefreshTokenValid = await bcrypt.compare(
@@ -224,7 +240,10 @@ export class AuthService {
       );
 
       if (!isRefreshTokenValid) {
-        throw new UnauthorizedException('Invalid refresh token');
+        throw new UnauthorizedException({
+          code: AuthError.INVALID_REFRESH_TOKEN,
+          message: AuthErrorMessage[AuthError.INVALID_REFRESH_TOKEN],
+        });
       }
 
       // Generate new tokens
@@ -245,7 +264,10 @@ export class AuthService {
       };
     } catch (error) {
       this.logger.logger(`Token refresh failed: ${error.message}`, context);
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        code: AuthError.INVALID_REFRESH_TOKEN,
+        message: AuthErrorMessage[AuthError.INVALID_REFRESH_TOKEN],
+      });
     }
   }
 
@@ -300,7 +322,10 @@ export class AuthService {
         module: 'AuthService',
         method: 'handleGoogleRedirect',
       });
-      throw new UnauthorizedException('Invalid state or state mismatch.');
+      throw new UnauthorizedException({
+        code: AuthError.INVALID_STATE,
+        message: AuthErrorMessage[AuthError.INVALID_STATE],
+      });
     }
 
     const tokenResponse = await axios.post(
@@ -357,7 +382,11 @@ export class AuthService {
 
       if (!this.mobileOAuthConfig.isPlatformConfigured(platform)) {
         throw new BadRequestException(
-          `Google OAuth not configured for ${platform}`,
+          {
+            code: AuthError.GOOGLE_OAUTH_CLIENT_ID_NOT_CONFIGURED,
+            message: AuthErrorMessage[AuthError.GOOGLE_OAUTH_CLIENT_ID_NOT_CONFIGURED],
+            details: { platform },
+          },
         );
       }
 
@@ -415,7 +444,10 @@ export class AuthService {
         throw error;
       }
 
-      throw new UnauthorizedException('Mobile authentication failed');
+      throw new UnauthorizedException({
+        code: AuthError.MOBILE_AUTH_FAILED,
+        message: AuthErrorMessage[AuthError.MOBILE_AUTH_FAILED],
+      });
     }
   }
 
@@ -434,7 +466,14 @@ export class AuthService {
           context,
         );
         throw new BadRequestException(
-          `Apple OAuth not properly configured for ${platform}: ${configValidation.errors.join(', ')}`,
+          {
+            code: AuthError.UNSUPPORTED_PLATFORM,
+            message: AuthErrorMessage[AuthError.UNSUPPORTED_PLATFORM],
+            details: {
+              platform,
+              configErrors: configValidation.errors,
+            },
+          },
         );
       }
 
@@ -467,7 +506,10 @@ export class AuthService {
         throw error;
       }
 
-      throw new UnauthorizedException('Apple authentication failed');
+      throw new UnauthorizedException({
+        code: AuthError.APPLE_AUTH_FAILED,
+        message: AuthErrorMessage[AuthError.APPLE_AUTH_FAILED],
+      });
     }
   }
 
@@ -491,7 +533,10 @@ export class AuthService {
         );
         const canCreate = this.authDomainService.canCreateUser(existingUser);
         if (!canCreate) {
-          throw new BadRequestException('User already exists with this email');
+          throw new BadRequestException({
+            code: AuthError.EMAIL_ALREADY_EXISTS,
+            message: AuthErrorMessage[AuthError.EMAIL_ALREADY_EXISTS],
+          });
         }
 
         const authId = this.authDomainService.generateUserId();
@@ -621,7 +666,10 @@ export class AuthService {
         );
         const canCreate = this.authDomainService.canCreateUser(existingUser);
         if (!canCreate) {
-          throw new BadRequestException('User already exists with this email');
+          throw new BadRequestException({
+            code: AuthError.EMAIL_ALREADY_EXISTS,
+            message: AuthErrorMessage[AuthError.EMAIL_ALREADY_EXISTS],
+          });
         }
 
         const authId = this.authDomainService.generateUserId();
@@ -748,12 +796,18 @@ export class AuthService {
 
     const auth = await this.authRepository.findById(userId, true);
     if (!auth) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: AuthError.USER_NOT_FOUND,
+        message: AuthErrorMessage[AuthError.USER_NOT_FOUND],
+      });
     }
 
     const isOldPasswordValid = await bcrypt.compare(oldPassword, auth.password);
     if (!isOldPasswordValid) {
-      throw new UnauthorizedException('Old password is incorrect');
+      throw new UnauthorizedException({
+        code: AuthError.OLD_PASSWORD_INCORRECT,
+        message: AuthErrorMessage[AuthError.OLD_PASSWORD_INCORRECT],
+      });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -776,7 +830,10 @@ export class AuthService {
         module: 'AuthService',
         method: 'deleteByAuthId',
       });
-      throw new NotFoundException('Auth user not found');
+      throw new NotFoundException({
+        code: AuthError.AUTH_USER_NOT_FOUND,
+        message: AuthErrorMessage[AuthError.AUTH_USER_NOT_FOUND],
+      });
     }
 
     const profile = await this.profileRepository.findByAuthId(auth.id);
@@ -785,7 +842,10 @@ export class AuthService {
         module: 'AuthService',
         method: 'deleteByAuthId',
       });
-      throw new NotFoundException('Profile not found');
+      throw new NotFoundException({
+        code: ProfileError.PROFILE_NOT_FOUND,
+        message: ProfileErrorMessage[ProfileError.PROFILE_NOT_FOUND],
+      });
     }
 
     await this.commandBus.execute(

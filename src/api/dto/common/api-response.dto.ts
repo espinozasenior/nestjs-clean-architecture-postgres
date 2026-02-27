@@ -19,22 +19,22 @@ export class SuccessResponseDto<T = any> implements ApiResponse<T> {
     description: 'Human-readable message',
     example: 'Operation completed successfully',
   })
-  message: string;
+  readonly message: string;
 
   @ApiProperty({ description: 'Response data' })
-  data?: T;
+  readonly data?: T;
 
   @ApiProperty({
     description: 'Response timestamp',
     example: '2024-01-15T10:30:00.000Z',
   })
-  timestamp?: string;
+  readonly timestamp?: string;
 
   @ApiProperty({ description: 'Request path', example: '/api/v1/profile/123' })
-  path?: string;
+  readonly path?: string;
 
   @ApiProperty({ description: 'HTTP method', example: 'GET' })
-  method?: string;
+  readonly method?: string;
 
   constructor(message: string, data?: T, meta?: any) {
     this.message = message;
@@ -53,10 +53,10 @@ export class ErrorResponseDto implements ApiResponse {
     description: 'Human-readable error message',
     example: 'User not found',
   })
-  message: string;
+  readonly message: string;
 
   @ApiProperty({ description: 'Error details' })
-  error: {
+  readonly error: {
     code: string;
     details?: any;
   };
@@ -65,13 +65,13 @@ export class ErrorResponseDto implements ApiResponse {
     description: 'Response timestamp',
     example: '2024-01-15T10:30:00.000Z',
   })
-  timestamp?: string;
+  readonly timestamp?: string;
 
   @ApiProperty({ description: 'Request path', example: '/api/v1/profile/123' })
-  path?: string;
+  readonly path?: string;
 
   @ApiProperty({ description: 'HTTP method', example: 'GET' })
-  method?: string;
+  readonly method?: string;
 
   constructor(message: string, code: string, details?: any, meta?: any) {
     this.message = message;
@@ -87,31 +87,31 @@ export class ErrorResponseDto implements ApiResponse {
 // Pagination metadata
 export class PaginationMeta {
   @ApiProperty({ description: 'Current page number', example: 1 })
-  page: number;
+  readonly page: number;
 
   @ApiProperty({ description: 'Number of items per page', example: 10 })
-  limit: number;
+  readonly limit: number;
 
   @ApiProperty({ description: 'Total number of items', example: 100 })
-  total: number;
+  readonly total: number;
 
   @ApiProperty({ description: 'Total number of pages', example: 10 })
-  totalPages: number;
+  readonly totalPages: number;
 
   @ApiProperty({ description: 'Whether there is a next page', example: true })
-  hasNext: boolean;
+  readonly hasNext: boolean;
 
   @ApiProperty({
     description: 'Whether there is a previous page',
     example: false,
   })
-  hasPrev: boolean;
+  readonly hasPrev: boolean;
 }
 
 // Paginated response
 export class PaginatedResponseDto<T = any> extends SuccessResponseDto<T[]> {
   @ApiProperty({ description: 'Pagination metadata' })
-  pagination: PaginationMeta;
+  readonly pagination: PaginationMeta;
 
   constructor(
     message: string,

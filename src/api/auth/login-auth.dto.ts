@@ -8,7 +8,7 @@ export class LoginAuthDto {
   })
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  readonly email: string;
 
   @ApiProperty({
     description: 'The password for the user',
@@ -18,5 +18,5 @@ export class LoginAuthDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
-  password: string;
+  readonly password: string;
 }

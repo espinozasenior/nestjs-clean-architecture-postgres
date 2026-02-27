@@ -1,5 +1,6 @@
 import { CreateAuthUserCommand } from '@application/auth/command/create-auth-user.command';
 import { AuthUserCreatedEvent } from '@application/auth/events/auth-user-created.event';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
 import { LoggerService } from '@application/services/logger.service';
 import { IAuthRepository } from '@domain/auth';
 import { AuthDomainService } from '@domain/services/auth-domain.service';
@@ -37,7 +38,10 @@ export class CreateAuthUserHandler
         `Registration failed - email already exists: ${email}`,
         context,
       );
-      throw new ConflictException('An account with this email already exists.');
+      throw new ConflictException({
+        code: AuthError.EMAIL_ALREADY_EXISTS,
+        message: AuthErrorMessage[AuthError.EMAIL_ALREADY_EXISTS],
+      });
     }
 
     await this.authRepository.create({

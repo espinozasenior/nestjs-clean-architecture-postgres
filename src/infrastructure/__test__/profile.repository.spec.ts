@@ -15,6 +15,7 @@ describe('ProfileRepository', () => {
       create: jest.fn((data: any) => data),
       save: jest.fn(async (data: any) => ({ ...data })),
       find: jest.fn(async () => []),
+      findAndCount: jest.fn(async () => [[], 0]),
       findOne: jest.fn(async () => null),
       update: jest.fn(async () => ({ affected: 1 })),
       softDelete: jest.fn(async () => undefined),
@@ -79,12 +80,22 @@ describe('ProfileRepository', () => {
         },
       ];
 
-      mockTypeOrmRepository.find.mockResolvedValue(mockProfiles as any);
+      mockTypeOrmRepository.findAndCount.mockResolvedValue([
+        mockProfiles as any,
+        mockProfiles.length,
+      ]);
 
       const result = await repository.findAll();
 
-      expect(mockTypeOrmRepository.find).toHaveBeenCalledWith({ relations: ['auth'] });
-      expect(result).toHaveLength(2);
+      expect(mockTypeOrmRepository.findAndCount).toHaveBeenCalledWith({
+        relations: ['auth'],
+        skip: undefined,
+        take: undefined,
+        where: undefined,
+        order: undefined,
+      });
+      expect(result.data).toHaveLength(2);
+      expect(result.count).toBe(2);
     });
   });
 

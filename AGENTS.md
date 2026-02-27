@@ -22,3 +22,22 @@
 - Use barrel exports: `import { X } from '@domain/auth'`
 - Never import infrastructure from domain
 - Never import API layer from application/domain
+
+## Code Quality Constraints
+
+8. **Readonly DTOs**: All DTO properties MUST use `readonly` modifier
+9. **No Magic Strings**: Use error enums from `application/shared/errors/`
+10. **Repository Returns**: All `findAll` methods MUST return `{ data, count }`
+
+## Error Handling Pattern
+
+```typescript
+// CORRECT
+throw new NotFoundException({
+  code: AuthError.USER_NOT_FOUND,
+  message: AuthErrorMessage[AuthError.USER_NOT_FOUND],
+});
+
+// WRONG
+throw new NotFoundException('User not found');
+```

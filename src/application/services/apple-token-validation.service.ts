@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
 import { createRemoteJWKSet, jwtVerify, JWTPayload, decodeJwt } from 'jose';
 import { AuthDomainService } from '@domain/services/auth-domain.service';
 import { LoggerService } from '@application/services/logger.service';
@@ -51,7 +52,10 @@ export class AppleTokenValidationService {
       this.authDomainService.validateAppleIdTokenFormat(idToken);
 
       if (!this.jwks) {
-        throw new UnauthorizedException('Apple JWKS not initialized');
+        throw new UnauthorizedException({
+          code: AuthError.APPLE_JWKS_NOT_INITIALIZED,
+          message: AuthErrorMessage[AuthError.APPLE_JWKS_NOT_INITIALIZED],
+        });
       }
 
       // Get the expected audiences (client IDs) for the platform
@@ -100,15 +104,24 @@ export class AppleTokenValidationService {
 
       // Handle JWT verification errors with more specific messages
       if (error.code === 'ERR_JWT_EXPIRED') {
-        throw new UnauthorizedException('Apple ID token has expired');
+        throw new UnauthorizedException({
+          code: AuthError.APPLE_ID_TOKEN_EXPIRED,
+          message: AuthErrorMessage[AuthError.APPLE_ID_TOKEN_EXPIRED],
+        });
       }
 
       if (error.code === 'ERR_JWT_INVALID') {
-        throw new UnauthorizedException('Invalid Apple ID token format');
+        throw new UnauthorizedException({
+          code: AuthError.APPLE_ID_TOKEN_INVALID_FORMAT,
+          message: AuthErrorMessage[AuthError.APPLE_ID_TOKEN_INVALID_FORMAT],
+        });
       }
 
       if (error.code === 'ERR_JWT_SIGNATURE_VERIFICATION_FAILED') {
-        throw new UnauthorizedException('Apple ID token signature verification failed');
+        throw new UnauthorizedException({
+          code: AuthError.APPLE_ID_TOKEN_SIGNATURE_INVALID,
+          message: AuthErrorMessage[AuthError.APPLE_ID_TOKEN_SIGNATURE_INVALID],
+        });
       }
 
       if (
@@ -133,18 +146,28 @@ export class AppleTokenValidationService {
             context,
           );
         }
-        throw new UnauthorizedException('Apple ID token audience mismatch');
+        throw new UnauthorizedException({
+          code: AuthError.APPLE_ID_TOKEN_AUDIENCE_INVALID,
+          message: AuthErrorMessage[AuthError.APPLE_ID_TOKEN_AUDIENCE_INVALID],
+        });
       }
 
       if (error.code === 'ERR_JWT_ISSUER_INVALID') {
-        throw new UnauthorizedException('Apple ID token issuer invalid');
+        throw new UnauthorizedException({
+          code: AuthError.APPLE_ID_TOKEN_ISSUER_INVALID,
+          message: AuthErrorMessage[AuthError.APPLE_ID_TOKEN_ISSUER_INVALID],
+        });
       }
 
       if (error instanceof UnauthorizedException) {
         throw error;
       }
 
-      throw new UnauthorizedException(`Invalid Apple ID token: ${error.message}`);
+      throw new UnauthorizedException({
+        code: AuthError.APPLE_ID_TOKEN_INVALID,
+        message: AuthErrorMessage[AuthError.APPLE_ID_TOKEN_INVALID],
+        details: error.message,
+      });
     }
   }
 
@@ -156,19 +179,29 @@ export class AppleTokenValidationService {
     const missingClaims = requiredClaims.filter(claim => !payload[claim]);
 
     if (missingClaims.length > 0) {
-      throw new UnauthorizedException(`Missing required claims: ${missingClaims.join(', ')}`);
+      throw new UnauthorizedException({
+        code: AuthError.REQUIRED_CLAIMS_MISSING,
+        message: AuthErrorMessage[AuthError.REQUIRED_CLAIMS_MISSING],
+        details: { missingClaims },
+      });
     }
 
     // Validate email format
     const email = String(payload.email);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      throw new UnauthorizedException('Invalid email format in Apple ID token');
+      throw new UnauthorizedException({
+        code: AuthError.APPLE_ID_TOKEN_EMAIL_INVALID,
+        message: AuthErrorMessage[AuthError.APPLE_ID_TOKEN_EMAIL_INVALID],
+      });
     }
 
     // Validate sub (subject) is not empty
     if (!payload.sub || String(payload.sub).trim() === '') {
-      throw new UnauthorizedException('Invalid subject claim in Apple ID token');
+      throw new UnauthorizedException({
+        code: AuthError.APPLE_ID_TOKEN_SUBJECT_INVALID,
+        message: AuthErrorMessage[AuthError.APPLE_ID_TOKEN_SUBJECT_INVALID],
+      });
     }
   }
 

@@ -15,3 +15,18 @@
 - Moving files between layers: REQUIRES review
 - Adding deps to domain: FORBIDDEN
 - Changing DI tokens: REQUIRES module updates
+
+## When Creating DTOs
+
+- ALWAYS add `readonly` to every property
+- NEVER create mutable DTO fields
+
+## When Throwing Errors
+
+- ALWAYS use enums from `application/shared/errors/`
+- NEVER use inline string messages
+
+## When Creating Repository Methods
+
+- ALWAYS return `{ data, count }` for list operations
+- ALWAYS accept `FindAllParams` object parameter
