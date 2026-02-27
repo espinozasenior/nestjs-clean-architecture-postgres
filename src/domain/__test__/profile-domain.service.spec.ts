@@ -1,5 +1,5 @@
 import { ProfileDomainService } from '@domain/services/profile-domain.service';
-import { Profile } from '@domain/entities/Profile';
+import { Profile } from '@domain/profile';
 import { faker } from '@faker-js/faker';
 
 describe('ProfileDomainService', () => {

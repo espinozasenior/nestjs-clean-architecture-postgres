@@ -17,7 +17,8 @@
     "^@application/(.*)$": "<rootDir>/../src/application/$1",
     "^@infrastructure/(.*)$": "<rootDir>/../src/infrastructure/$1",
     "^@api/(.*)$": "<rootDir>/../src/api/$1",
-    "^@constants$": "<rootDir>/../src/constants"
+    "^@constants$": "<rootDir>/../src/constants",
+    "^jose$": "<rootDir>/mocks/jose.mock.ts"
   },
   "testTimeout": 60000,
   "setupFilesAfterEnv": ["<rootDir>/setup-e2e.ts"],

@@ -1,10 +1,10 @@
 import { RegistrationSaga } from '@application/auth/sagas/registration.saga';
 import { CreateProfileHandler } from '@application/profile/command/handler/create-profile.handler';
-import { ProfileService } from '@application/services/profile.service';
+import { ProfileService } from '@application/profile/profile.service';
 import { ProfileDomainService } from '@domain/services/profile-domain.service';
-import { DatabaseModule } from '@infrastructure/database/database.module';
-import { ProfileEntity } from '@infrastructure/entities/profile.entity';
-import { ProfileRepository } from '@infrastructure/repository/profile.repository';
+import { DatabaseModule } from '@infrastructure/shared/database/database.module';
+import { ProfileEntity } from '@infrastructure/profile/profile.entity';
+import { ProfileRepository } from '@infrastructure/profile/profile.repository';
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';

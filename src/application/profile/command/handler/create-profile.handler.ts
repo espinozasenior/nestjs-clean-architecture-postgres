@@ -1,7 +1,7 @@
 import { CreateProfileCommand } from '@application/profile/command/create-profile.command';
 import { ProfileCreationFailedEvent } from '@application/profile/events/profile-creation-failed.event';
 import { LoggerService } from '@application/services/logger.service';
-import { IProfileRepository } from '@domain/interfaces/repositories/profile-repository.interface';
+import { IProfileRepository } from '@domain/profile';
 import { Inject } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 

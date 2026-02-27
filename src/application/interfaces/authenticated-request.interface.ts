@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Role } from '@domain/entities/enums/role.enum';
+import { Role } from '@domain/shared/enums/role.enum';
 
 export interface JwtPayload {
   id: string;         // User ID (transformed from 'sub' by JWT strategy)

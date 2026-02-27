@@ -1,11 +1,11 @@
-import { IAuthRepository } from '@domain/interfaces/repositories/auth-repository.interface';
+import { IAuthRepository } from '@domain/auth';
 import { CreateAppleAuthUserCommand } from '@application/auth/command/create-apple-auth-user.command';
 import { ConflictException, Inject } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { AuthUserCreatedEvent } from '@application/auth/events/auth-user-created.event';
 import { LoggerService } from '@application/services/logger.service';
 import { AuthDomainService } from '@domain/services/auth-domain.service';
-import { Role } from '@domain/entities/enums/role.enum';
+import { Role } from '@domain/shared/enums/role.enum';
 
 @CommandHandler(CreateAppleAuthUserCommand)
 export class CreateAppleAuthUserHandler implements ICommandHandler<CreateAppleAuthUserCommand> {

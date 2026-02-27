@@ -1,7 +1,7 @@
 import { CreateAuthUserCommand } from '@application/auth/command/create-auth-user.command';
 import { AuthUserCreatedEvent } from '@application/auth/events/auth-user-created.event';
 import { LoggerService } from '@application/services/logger.service';
-import { IAuthRepository } from '@domain/interfaces/repositories/auth-repository.interface';
+import { IAuthRepository } from '@domain/auth';
 import { AuthDomainService } from '@domain/services/auth-domain.service';
 import { ConflictException, Inject } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';

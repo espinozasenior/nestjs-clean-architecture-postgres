@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { JwtPayload } from '@application/interfaces/authenticated-request.interface';
-import { Role } from '@domain/entities/enums/role.enum';
+import { Role } from '@domain/shared/enums/role.enum';
 
 export const CurrentUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): JwtPayload => {
