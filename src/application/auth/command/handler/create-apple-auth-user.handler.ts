@@ -1,5 +1,6 @@
 import { IAuthRepository } from '@domain/auth';
 import { CreateAppleAuthUserCommand } from '@application/auth/command/create-apple-auth-user.command';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
 import { ConflictException, Inject } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { AuthUserCreatedEvent } from '@application/auth/events/auth-user-created.event';
@@ -28,7 +29,10 @@ export class CreateAppleAuthUserHandler implements ICommandHandler<CreateAppleAu
     const canCreate = this.authDomainService.canCreateUser(existingUser);
     if (!canCreate) {
       this.logger.warning(`Apple registration failed - email already exists: ${email}`, context);
-      throw new ConflictException('An account with this email already exists.');
+      throw new ConflictException({
+        code: AuthError.EMAIL_ALREADY_EXISTS,
+        message: AuthErrorMessage[AuthError.EMAIL_ALREADY_EXISTS],
+      });
     }
 
     await this.authRepository.create({

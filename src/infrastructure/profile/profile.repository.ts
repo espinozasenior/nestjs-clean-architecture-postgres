@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, IsNull, Repository } from 'typeorm';
+import {
+  FindOptionsOrder,
+  FindOptionsWhere,
+  IsNull,
+  Repository,
+} from 'typeorm';
 import { Profile, IProfileRepository } from '@domain/profile';
 import { Role } from '@domain/shared/enums/role.enum';
+import { FindAllParams, PaginatedResult } from '@domain/shared';
 import { ProfileEntity } from '@infrastructure/profile/profile.entity';
 
 export type ProfileResponse = Profile & {
@@ -24,11 +30,18 @@ export class ProfileRepository implements IProfileRepository {
     return this.mapToProfile(savedProfile);
   }
 
-  async findAll(): Promise<Profile[]> {
-    const profiles = await this.profileRepository.find({
+  async findAll(params?: FindAllParams): Promise<PaginatedResult<Profile>> {
+    const [profiles, count] = await this.profileRepository.findAndCount({
       relations: ['auth'],
+      skip: params?.skip,
+      take: params?.take,
+      where: params?.where as FindOptionsWhere<ProfileEntity>,
+      order: params?.orderBy as FindOptionsOrder<ProfileEntity>,
     });
-    return profiles.map(profile => this.mapToProfile(profile));
+    return {
+      data: profiles.map(profile => this.mapToProfile(profile)),
+      count,
+    };
   }
 
   async findById(id: string): Promise<Profile | null> {

@@ -4,6 +4,7 @@ import { CreateProfileDto } from '@api/profile/create-profile.dto';
 import { LoggerService } from '@application/services/logger.service';
 import { Profile, IProfileRepository } from '@domain/profile';
 import { Role } from '@domain/shared/enums/role.enum';
+import { PaginatedResult } from '@domain/shared';
 import { ProfileDomainService } from '@domain/services/profile-domain.service';
 
 @Injectable()
@@ -38,7 +39,7 @@ export class ProfileService {
     return await this.repository.create(profileEntity);
   }
 
-  async find(): Promise<Profile[]> {
+  async find(): Promise<PaginatedResult<Profile>> {
     const context = { module: 'ProfileService', method: 'find' };
     this.logger.logger('Fetching all profiles', context);
     return this.repository.findAll();

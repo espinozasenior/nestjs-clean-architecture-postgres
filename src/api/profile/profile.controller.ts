@@ -7,6 +7,7 @@ import { CurrentUserId } from '@application/decorators/current-user.decorator';
 import { LoggingInterceptor } from '@application/interceptors/logging.interceptor';
 import { ProfileService } from '@application/profile/profile.service';
 import { ResponseService } from '@application/services/response.service';
+import { ProfileError, ProfileErrorMessage } from '@application/shared/errors';
 import { Role } from '@domain/shared/enums/role.enum';
 import { Profile } from '@domain/profile';
 import {
@@ -49,8 +50,8 @@ export class ProfileController {
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'Returns all users', type: [Profile] })
   async getAll(): Promise<SuccessResponseDto<Profile[]>> {
-    const profiles = await this.profileService.find();
-    return this.responseService.retrieved(profiles, 'All profiles retrieved successfully');
+    const { data } = await this.profileService.find();
+    return this.responseService.retrieved(data, 'All profiles retrieved successfully');
   }
 
   @Roles(Role.ADMIN)
@@ -84,7 +85,10 @@ export class ProfileController {
   ): Promise<SuccessResponseDto<Profile>> {
     const profile = await this.profileService.findByAuthId(requestingUserId);
     if (!profile) {
-      throw new NotFoundException('Profile not found');
+      throw new NotFoundException({
+        code: ProfileError.PROFILE_NOT_FOUND,
+        message: ProfileErrorMessage[ProfileError.PROFILE_NOT_FOUND],
+      });
     }
 
     return this.responseService.retrieved(profile, 'Profile retrieved successfully');
@@ -99,12 +103,18 @@ export class ProfileController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async getProfile(@Param('id') id: string) {
     if (!id) {
-      throw new BadRequestException('Profile id is required');
+      throw new BadRequestException({
+        code: ProfileError.PROFILE_ID_REQUIRED,
+        message: ProfileErrorMessage[ProfileError.PROFILE_ID_REQUIRED],
+      });
     }
 
     const profile = await this.profileService.findById(id);
     if (!profile) {
-      throw new NotFoundException('Profile not found');
+      throw new NotFoundException({
+        code: ProfileError.PROFILE_NOT_FOUND,
+        message: ProfileErrorMessage[ProfileError.PROFILE_NOT_FOUND],
+      });
     }
 
     return this.responseService.retrieved(profile, 'Profile retrieved successfully');

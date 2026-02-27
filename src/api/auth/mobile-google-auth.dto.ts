@@ -14,7 +14,7 @@ export class MobileGoogleAuthDto {
   @IsOptional()
   @IsString({ message: 'Authorization code must be a string' })
   @ValidateIf((o) => !o.idToken)
-  code?: string;
+  readonly code?: string;
 
   @ApiProperty({
     description: 'Google ID token (for ID token flow)',
@@ -24,7 +24,7 @@ export class MobileGoogleAuthDto {
   @IsOptional()
   @IsString({ message: 'ID token must be a string' })
   @ValidateIf((o) => !o.code)
-  idToken?: string;
+  readonly idToken?: string;
 
   @ApiProperty({
     description: 'PKCE code verifier (required when using authorization code flow)',
@@ -34,7 +34,7 @@ export class MobileGoogleAuthDto {
   @IsOptional()
   @IsString({ message: 'Code verifier must be a string' })
   @ValidateIf((o) => !!o.code)
-  code_verifier?: string;
+  readonly code_verifier?: string;
 
   @ApiProperty({
     description: 'Mobile platform (ios or android)',
@@ -44,5 +44,5 @@ export class MobileGoogleAuthDto {
   })
   @IsNotEmpty({ message: 'Platform is required' })
   @IsIn(['ios', 'android'], { message: 'Platform must be either "ios" or "android"' })
-  platform: 'ios' | 'android';
+  readonly platform: 'ios' | 'android';
 }

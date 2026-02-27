@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
 import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose';
 import { LoggerService } from './logger.service';
 import { MobileOAuthConfigService } from './mobile-oauth-config.service';
@@ -61,7 +62,10 @@ export class JWKSTokenValidationService {
       this.logger.logger(`Verifying ID token for ${platform} platform using JWKS`, context);
 
       if (!this.jwks) {
-        throw new UnauthorizedException('JWKS not initialized');
+        throw new UnauthorizedException({
+          code: AuthError.JWKS_NOT_INITIALIZED,
+          message: AuthErrorMessage[AuthError.JWKS_NOT_INITIALIZED],
+        });
       }
 
       // Get expected audience for the platform
@@ -80,10 +84,16 @@ export class JWKSTokenValidationService {
       // Validate nonce if provided (important for security)
       if (expectedNonce) {
         if (!payload.nonce) {
-          throw new UnauthorizedException('Nonce is required but not present in token');
+          throw new UnauthorizedException({
+            code: AuthError.NONCE_MISSING,
+            message: AuthErrorMessage[AuthError.NONCE_MISSING],
+          });
         }
         if (payload.nonce !== expectedNonce) {
-          throw new UnauthorizedException('Invalid nonce value - possible replay attack');
+          throw new UnauthorizedException({
+            code: AuthError.NONCE_INVALID,
+            message: AuthErrorMessage[AuthError.NONCE_INVALID],
+          });
         }
       }
 
@@ -117,30 +127,52 @@ export class JWKSTokenValidationService {
 
       // Handle JWT verification errors with more specific messages
       if (error.code === 'ERR_JWT_EXPIRED') {
-        throw new UnauthorizedException('ID token has expired');
+        throw new UnauthorizedException({
+          code: AuthError.ID_TOKEN_EXPIRED,
+          message: AuthErrorMessage[AuthError.ID_TOKEN_EXPIRED],
+        });
       }
 
       if (error.code === 'ERR_JWT_INVALID') {
-        throw new UnauthorizedException('Invalid ID token format');
+        throw new UnauthorizedException({
+          code: AuthError.ID_TOKEN_INVALID_FORMAT,
+          message: AuthErrorMessage[AuthError.ID_TOKEN_INVALID_FORMAT],
+        });
       }
 
       if (error.code === 'ERR_JWT_SIGNATURE_VERIFICATION_FAILED') {
-        throw new UnauthorizedException('ID token signature verification failed');
+        throw new UnauthorizedException({
+          code: AuthError.ID_TOKEN_SIGNATURE_INVALID,
+          message: AuthErrorMessage[AuthError.ID_TOKEN_SIGNATURE_INVALID],
+        });
       }
 
       if (error.code === 'ERR_JWT_AUDIENCE_INVALID') {
-        throw new UnauthorizedException('ID token audience mismatch');
+        throw new UnauthorizedException({
+          code: AuthError.ID_TOKEN_AUDIENCE_INVALID,
+          message: AuthErrorMessage[AuthError.ID_TOKEN_AUDIENCE_INVALID],
+        });
       }
 
       if (error.code === 'ERR_JWT_ISSUER_INVALID') {
-        throw new UnauthorizedException('ID token issuer invalid');
+        throw new UnauthorizedException({
+          code: AuthError.ID_TOKEN_ISSUER_INVALID,
+          message: AuthErrorMessage[AuthError.ID_TOKEN_ISSUER_INVALID],
+        });
       }
 
       if (error.code === 'ERR_JWKS_NO_MATCHING_KEY') {
-        throw new UnauthorizedException('No matching key found in JWKS');
+        throw new UnauthorizedException({
+          code: AuthError.JWKS_NO_MATCHING_KEY,
+          message: AuthErrorMessage[AuthError.JWKS_NO_MATCHING_KEY],
+        });
       }
 
-      throw new UnauthorizedException(`ID token verification failed: ${error.message}`);
+      throw new UnauthorizedException({
+        code: AuthError.ID_TOKEN_VERIFICATION_FAILED,
+        message: AuthErrorMessage[AuthError.ID_TOKEN_VERIFICATION_FAILED],
+        details: error.message,
+      });
     }
   }
 
@@ -152,19 +184,29 @@ export class JWKSTokenValidationService {
     const missingClaims = requiredClaims.filter(claim => !payload[claim]);
 
     if (missingClaims.length > 0) {
-      throw new UnauthorizedException(`Missing required claims: ${missingClaims.join(', ')}`);
+      throw new UnauthorizedException({
+        code: AuthError.REQUIRED_CLAIMS_MISSING,
+        message: AuthErrorMessage[AuthError.REQUIRED_CLAIMS_MISSING],
+        details: { missingClaims },
+      });
     }
 
     // Validate email format
     const email = String(payload.email);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      throw new UnauthorizedException('Invalid email format in ID token');
+      throw new UnauthorizedException({
+        code: AuthError.ID_TOKEN_EMAIL_INVALID,
+        message: AuthErrorMessage[AuthError.ID_TOKEN_EMAIL_INVALID],
+      });
     }
 
     // Validate sub (subject) is not empty
     if (!payload.sub || String(payload.sub).trim() === '') {
-      throw new UnauthorizedException('Invalid subject claim in ID token');
+      throw new UnauthorizedException({
+        code: AuthError.ID_TOKEN_SUBJECT_INVALID,
+        message: AuthErrorMessage[AuthError.ID_TOKEN_SUBJECT_INVALID],
+      });
     }
   }
 

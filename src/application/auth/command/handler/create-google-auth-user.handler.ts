@@ -3,6 +3,7 @@ import { ConflictException, Inject } from '@nestjs/common';
 import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { AuthUserCreatedEvent } from '@application/auth/events/auth-user-created.event';
 import { CreateGoogleAuthUserCommand } from '@application/auth/command/create-google-auth-user.command';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
 import { LoggerService } from '@application/services/logger.service';
 import { AuthDomainService } from '@domain/services/auth-domain.service';
 import { Role } from '@domain/shared/enums/role.enum';
@@ -28,7 +29,10 @@ export class CreateGoogleAuthUserHandler implements ICommandHandler<CreateGoogle
     const canCreate = this.authDomainService.canCreateUser(existingUser);
     if (!canCreate) {
       this.logger.warning(`Google registration failed - email already exists: ${email}`, context);
-      throw new ConflictException('An account with this email already exists.');
+      throw new ConflictException({
+        code: AuthError.EMAIL_ALREADY_EXISTS,
+        message: AuthErrorMessage[AuthError.EMAIL_ALREADY_EXISTS],
+      });
     }
 
     await this.authRepository.create({

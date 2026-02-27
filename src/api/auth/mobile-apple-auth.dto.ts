@@ -15,7 +15,7 @@ export class MobileAppleAuthDto {
   @IsNotEmpty({ message: 'Apple ID token is required' })
   @IsString({ message: 'ID token must be a string' })
   @Transform(({ value }) => value?.trim())
-  idToken: string;
+  readonly idToken: string;
 
   @ApiProperty({
     description: 'Mobile platform',
@@ -26,7 +26,7 @@ export class MobileAppleAuthDto {
   @IsNotEmpty({ message: 'Platform is required' })
   @IsIn(['ios', 'android'], { message: 'Platform must be either "ios" or "android"' })
   @Transform(({ value }) => value?.toLowerCase().trim())
-  platform: 'ios' | 'android';
+  readonly platform: 'ios' | 'android';
 
   @ApiProperty({
     description: 'User identifier from Apple (optional, extracted from token if not provided)',
@@ -36,7 +36,7 @@ export class MobileAppleAuthDto {
   @IsOptional()
   @IsString({ message: 'User identifier must be a string' })
   @Transform(({ value }) => value?.trim())
-  user?: string;
+  readonly user?: string;
 
   @ApiProperty({
     description: 'Authorization code from Apple (optional)',
@@ -46,5 +46,5 @@ export class MobileAppleAuthDto {
   @IsOptional()
   @IsString({ message: 'Authorization code must be a string' })
   @Transform(({ value }) => value?.trim())
-  authorizationCode?: string;
+  readonly authorizationCode?: string;
 }
