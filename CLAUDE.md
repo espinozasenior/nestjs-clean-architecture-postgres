@@ -25,6 +25,11 @@
 
 - ALWAYS use enums from `application/shared/errors/`
 - NEVER use inline string messages
+- Standard NestJS exceptions auto-convert to RFC 9457 Problem Details
+- Errors MUST return `application/problem+json`
+- ALWAYS include `code` from error enums so type URIs can be resolved
+- NEVER expose stack traces or internal implementation paths in production
+
 
 ## When Creating Repository Methods
 

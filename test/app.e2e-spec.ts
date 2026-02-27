@@ -3,10 +3,21 @@ import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { faker } from '@faker-js/faker';
 import { INestApplication, VersioningType } from '@nestjs/common';
+import { ProblemDetailsFilter } from '../src/application/filters/problem-details.filter';
+import { ProblemDetailsValidationPipe } from '../src/application/pipes/problem-details-validation.pipe';
+import { DEFAULT_PROBLEM_TYPE_BASE_URL } from '../src/application/shared/errors';
 
 describe('App (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
+
+  const expectProblemDetails = (res: request.Response, status: number) => {
+    expect(res.headers['content-type']).toContain('application/problem+json');
+    expect(res.body.status).toBe(status);
+    expect(typeof res.body.type).toBe('string');
+    expect(typeof res.body.title).toBe('string');
+    expect(typeof res.body.detail).toBe('string');
+  };
 
   const testUser = {
     name: faker.person.firstName(),
@@ -27,6 +38,20 @@ describe('App (e2e)', () => {
       type: VersioningType.URI,
       defaultVersion: '1',
     });
+    app.useGlobalFilters(
+      new ProblemDetailsFilter({
+        includeStackTrace: process.env.NODE_ENV !== 'production',
+        problemTypeBaseUrl:
+          process.env.PROBLEM_TYPE_BASE_URL || DEFAULT_PROBLEM_TYPE_BASE_URL,
+      }),
+    );
+    app.useGlobalPipes(
+      new ProblemDetailsValidationPipe({
+        whitelist: true,
+        transform: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
     await app.init();
 
     const registerResponse = await request(app.getHttpServer())
@@ -103,7 +128,10 @@ describe('App (e2e)', () => {
       return request(app.getHttpServer())
         .get('/api/v1/profile/all')
         .set('Authorization', `Bearer ${accessToken}`)
-        .expect(403);
+        .expect(403)
+        .expect((res) => {
+          expectProblemDetails(res, 403);
+        });
     });
   });
 
@@ -117,7 +145,10 @@ describe('App (e2e)', () => {
     it('/api/v1/profile/all (GET) - should return 401 without token', () => {
       return request(app.getHttpServer())
         .get('/api/v1/profile/all')
-        .expect(401);
+        .expect(401)
+        .expect((res) => {
+          expectProblemDetails(res, 401);
+        });
     });
 
     it('/api/v1/profile (POST) - should return 401 without token', () => {
@@ -129,7 +160,28 @@ describe('App (e2e)', () => {
           lastname: 'User',
           age: 25
         })
-        .expect(401);
+        .expect(401)
+        .expect((res) => {
+          expectProblemDetails(res, 401);
+        });
+    });
+  });
+
+  describe('RFC 9457 Validation Errors', () => {
+    it('/api/v1/auth/login (POST) - returns Problem Details for invalid payload', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({
+          email: 'invalid-email',
+          password: '',
+        })
+        .expect(400);
+
+      expectProblemDetails(res, 400);
+      expect(res.body.code).toBe('VALIDATION_ERROR');
+      expect(Array.isArray(res.body.errors)).toBe(true);
+      expect(res.body.errors.length).toBeGreaterThan(0);
+      expect(res.body.type).toBe('https://httpstatuses.com/400');
     });
   });
 });

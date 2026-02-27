@@ -97,6 +97,24 @@ describe('ProfileRepository', () => {
       expect(result.data).toHaveLength(2);
       expect(result.count).toBe(2);
     });
+
+    it('should pass pagination and query params when provided', async () => {
+      mockTypeOrmRepository.findAndCount.mockResolvedValue([[], 0]);
+      await repository.findAll({
+        skip: 5,
+        take: 10,
+        where: { authId: 'auth-1' } as any,
+        orderBy: { name: 'ASC' } as any,
+      });
+
+      expect(mockTypeOrmRepository.findAndCount).toHaveBeenCalledWith({
+        relations: ['auth'],
+        skip: 5,
+        take: 10,
+        where: { authId: 'auth-1' },
+        order: { name: 'ASC' },
+      });
+    });
   });
 
   describe('findById', () => {

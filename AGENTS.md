@@ -28,6 +28,10 @@
 8. **Readonly DTOs**: All DTO properties MUST use `readonly` modifier
 9. **No Magic Strings**: Use error enums from `application/shared/errors/`
 10. **Repository Returns**: All `findAll` methods MUST return `{ data, count }`
+11. **RFC 9457**: All error responses MUST use Problem Details format
+12. **Problem Content-Type**: Errors MUST return `application/problem+json`
+13. **No Internals in Prod**: Never expose stack traces/internal paths in production
+14. **Type URI Mapping**: Map enum error codes with `ErrorType` from `application/shared/errors/error-types`
 
 ## Error Handling Pattern
 
