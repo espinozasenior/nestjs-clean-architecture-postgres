@@ -1,5 +1,5 @@
 import { JwtPayload } from '@application/interfaces/authenticated-request.interface';
-import { Role } from '@domain/entities/enums/role.enum';
+import { Role } from '@domain/shared/enums/role.enum';
 import { ExecutionContext } from '@nestjs/common';
 
 const currentUserCallback = (

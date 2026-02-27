@@ -1,10 +1,10 @@
-import { ProfileRepository } from '@infrastructure/repository/profile.repository';
-import { Profile } from '@domain/entities/Profile';
-import { Role } from '@domain/entities/enums/role.enum';
+import { ProfileRepository } from '@infrastructure/profile/profile.repository';
+import { Profile } from '@domain/profile';
+import { Role } from '@domain/shared/enums/role.enum';
 import { Test, TestingModule } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ProfileEntity } from '@infrastructure/entities/profile.entity';
+import { ProfileEntity } from '@infrastructure/profile/profile.entity';
 
 describe('ProfileRepository', () => {
   let repository: ProfileRepository;
@@ -17,7 +17,7 @@ describe('ProfileRepository', () => {
       find: jest.fn(async () => []),
       findOne: jest.fn(async () => null),
       update: jest.fn(async () => ({ affected: 1 })),
-      delete: jest.fn(async () => undefined),
+      softDelete: jest.fn(async () => undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -51,7 +51,8 @@ describe('ProfileRepository', () => {
 
       expect(mockTypeOrmRepository.create).toHaveBeenCalledWith(profileData);
       expect(mockTypeOrmRepository.save).toHaveBeenCalled();
-      expect(result).toEqual(profileData);
+      expect(result).toMatchObject(profileData);
+      expect(result.deletedAt).toBeNull();
     });
   });
 
@@ -118,6 +119,28 @@ describe('ProfileRepository', () => {
       expect(mockTypeOrmRepository.findOne).toHaveBeenCalledWith({ where: { id: profileId }, relations: ['auth'] });
       expect(result).toBeNull();
     });
+
+    it('should keep deletedAt when entity already has deleted timestamp', async () => {
+      const profileId = faker.string.uuid();
+      const deletedAt = new Date();
+      const mockProfile = {
+        id: profileId,
+        authId: faker.string.uuid(),
+        name: faker.person.firstName(),
+        lastname: faker.person.lastName(),
+        age: 25,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt,
+      };
+
+      mockTypeOrmRepository.findOne.mockResolvedValue(mockProfile as any);
+
+      const result = await repository.findById(profileId);
+
+      expect(result).toBeDefined();
+      expect(result?.deletedAt).toBe(deletedAt);
+    });
   });
 
   describe('findByAuthId', () => {
@@ -173,7 +196,8 @@ describe('ProfileRepository', () => {
         relations: ['auth'],
         where: { auth: { role: Role.ADMIN } },
       });
-      expect(result).toEqual(mockProfiles);
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject(mockProfiles[0]);
     });
   });
 
@@ -194,7 +218,10 @@ describe('ProfileRepository', () => {
 
       const result = await repository.update(profileId, updateData);
 
-      expect(mockTypeOrmRepository.update).toHaveBeenCalledWith(profileId, updateData);
+      expect(mockTypeOrmRepository.update).toHaveBeenCalledWith(
+        expect.objectContaining({ id: profileId }),
+        updateData,
+      );
       expect(mockTypeOrmRepository.findOne).toHaveBeenCalledWith({ where: { id: profileId }, relations: ['auth'] });
       expect(result).toBeDefined();
     });
@@ -215,7 +242,7 @@ describe('ProfileRepository', () => {
 
       await repository.delete(profileId);
 
-      expect(mockTypeOrmRepository.delete).toHaveBeenCalledWith(profileId);
+      expect(mockTypeOrmRepository.softDelete).toHaveBeenCalledWith({ id: profileId });
     });
   });
 });

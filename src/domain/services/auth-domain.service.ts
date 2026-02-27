@@ -1,5 +1,5 @@
-import { AuthUser } from '@domain/entities/Auth';
-import { Role } from '@domain/entities/enums/role.enum';
+import { AuthUser } from '@domain/auth';
+import { Role } from '@domain/shared/enums/role.enum';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface MobileOAuthData {

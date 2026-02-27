@@ -68,94 +68,40 @@ cd nestjs-clean-architecture
 
 ### 📁 Project Structure
 
+The project uses **feature-first inside each layer** while preserving strict Clean Architecture boundaries:
+
 ```
-.
-├── doc/
-│   ├── common.http              # Common API requests
-│   └── users.http               # User-specific API requests
-├── src/
-│   ├── api/                     # API Layer (HTTP Controllers & DTOs)
-│   │   ├── controllers/
-│   │   │   └── *.controller.ts  # HTTP endpoints (auth, profile, hello)
-│   │   ├── dto/
-│   │   │   ├── auth/            # Authentication DTOs
-│   │   │   │   └── *.dto.ts     # Login & register DTOs
-│   │   │   └── *.dto.ts         # Profile management DTOs
-│   │   └── api.module.ts        # API module configuration
-│   ├── application/             # Application Layer (Business Orchestration)
-│   │   ├── __test__/
-│   │   │   └── *.spec.ts        # Application layer tests
-│   │   ├── auth/
-│   │   │   ├── command/         # Auth commands & handlers
-│   │   │   │   ├── *.command.ts # Create/delete auth user commands
-│   │   │   │   └── handler/
-│   │   │   │       └── *.handler.ts # Command handlers
-│   │   │   ├── events/          # Auth domain events
-│   │   │   │   └── *.event.ts   # User created/deleted events
-│   │   │   ├── sagas/
-│   │   │   │   └── *.saga.ts    # Registration flow orchestration
-│   │   │   ├── decorators/
-│   │   │   │   └── *.decorator.ts # Custom decorators (roles)
-│   │   │   ├── guards/
-│   │   │   │   └── *.guard.ts   # Authentication & authorization guards
-│   │   │   ├── *.strategy.ts    # Auth strategies (JWT, local, Google OAuth)
-│   │   │   └── auth.module.ts   # Auth module configuration
-│   │   ├── decorators/
-│   │   │   └── *.decorator.ts   # Global decorators (current user)
-│   │   ├── interfaces/
-│   │   │   └── *.interface.ts   # Application interfaces
-│   │   ├── interceptors/
-│   │   │   └── *.interceptor.ts # Request logging interceptors
-│   │   ├── middlewere/
-│   │   │   └── *.middleware.ts  # HTTP middleware (logging)
-│   │   ├── services/
-│   │   │   └── *.service.ts     # Application services (auth, profile, logger)
-│   │   ├── profile/
-│   │   │   ├── command/         # Profile commands & handlers
-│   │   │   │   ├── *.command.ts # Profile commands
-│   │   │   │   └── handler/
-│   │   │   │       └── *.handler.ts # Command handlers
-│   │   │   ├── events/          # Profile domain events
-│   │   │   │   └── *.event.ts   # Profile events
-│   │   │   └── profile.module.ts # Profile module configuration
-│   │   └── application.module.ts # Application module aggregator
-│   ├── domain/                  # Domain Layer (Pure Business Logic)
-│   │   ├── __test__/
-│   │   │   └── *.spec.ts        # Domain layer tests
-│   │   ├── aggregates/          # Domain aggregates
-│   │   ├── entities/
-│   │   │   ├── *.ts             # Pure domain entities (Auth, Profile)
-│   │   │   └── enums/           # Domain enums
-│   │   │       └── *.enum.ts    # Role enums, etc.
-│   │   ├── interfaces/
-│   │   │   └── repositories/    # Repository contracts defined by domain
-│   │   │       └── *.interface.ts # Repository interfaces
-│   │   └── services/
-│   │       └── *.service.ts     # Pure business logic services
-│   ├── infrastructure/          # Infrastructure Layer (External Concerns)
-│   │   ├── database/
-│   │   │   ├── database.module.ts    # Database configuration
-│   │   │   └── database.providers.ts # Database providers
-│   │   ├── health/
-│   │   │   └── *.check.ts       # Health check configurations
-│   │   ├── logger/
-│   │   │   └── logger.module.ts # Global logger module
-│   │   ├── entities/
-│   │   │   ├── *.entity.ts      # PostgreSQL entities (auth, profile)
-│   │   │   └── index.ts         # Entity exports
-│   │   └── repository/
-│   │       └── *.repository.ts  # Repository implementations
-│   ├── main.ts                  # Application entry point
-│   ├── app.module.ts           # Root application module
-│   └── constants.ts            # Application constants
-├── test/
-│   ├── *.e2e-spec.ts           # End-to-end tests
-│   ├── jest-e2e.json           # E2E test configuration
-│   └── setup-e2e.ts            # E2E test setup
-├── prometheus/
-│   └── prometheus.yml          # Prometheus configuration
-├── docker-compose*.yml         # Docker Compose configurations (dev, prod)
-└── Dockerfile                  # Container definition
+src/
+├── api/
+│   ├── auth/                   # auth controller + auth DTOs + barrel
+│   ├── profile/                # profile controller + profile DTOs + barrel
+│   ├── hello/                  # hello controller + barrel
+│   ├── dto/common/             # shared API response DTOs
+│   └── api.module.ts
+├── application/
+│   ├── auth/                   # auth commands/handlers/events/sagas/guards/service/module
+│   ├── profile/                # profile commands/handlers/events/service/module
+│   ├── decorators/
+│   ├── filters/
+│   ├── interceptors/
+│   ├── interfaces/
+│   ├── middlewere/
+│   ├── services/               # cross-feature app services (logger, response, oauth helpers)
+│   └── application.module.ts
+├── domain/
+│   ├── auth/                   # Auth entity + auth repository interface + barrel
+│   ├── profile/                # Profile entity + profile repository interface + barrel
+│   ├── shared/enums/           # shared pure domain enums (Role)
+│   └── services/               # pure domain services
+└── infrastructure/
+    ├── auth/                   # auth TypeORM entity + auth repository + barrel
+    ├── profile/                # profile TypeORM entity + profile repository + barrel
+    ├── entities/base/          # shared base entities
+    ├── shared/
+    │   ├── database/
+    │   ├── health/
+    │   └── logger/
+    └── utils/
 ```
 
 ## 🏗️ Architecture Overview
@@ -252,23 +198,23 @@ This project follows a strict 4-layer architecture:
 
 ## 🐳 Running with Docker Compose
 
-The project is configured to run seamlessly with Docker. Use the npm scripts from `package.json` for convenience.
+The project is configured to run seamlessly with Docker. Use the pnpm scripts from `package.json` for convenience.
 
 ```bash
 # Build and start containers in detached mode for development
-$ npm run docker:dev
+$ pnpm run docker:dev
 
 # Build and start containers for production
-$ npm run docker:prod
+$ pnpm run docker:prod
 
 # View logs for the API service
-$ npm run docker:logs
+$ pnpm run docker:logs
 
 # Stop all running containers
-$ npm run docker:down
+$ pnpm run docker:down
 
 # Restart the development environment
-$ npm run docker:restart
+$ pnpm run docker:restart
 ```
 
 ### 🌐 Service Access
@@ -282,39 +228,39 @@ $ npm run docker:restart
 ## 📦 Installation
 
 ```bash
-$ npm install
+$ pnpm install
 ```
 
 ## 🚀 Running the Application
 
 ```bash
 # Development
-$ npm run start
+$ pnpm run start
 
 # Watch mode (recommended for development)
-$ npm run start:dev
+$ pnpm run start:dev
 
 # Production mode
-$ npm run start:prod
+$ pnpm run start:prod
 
 # Debug mode
-$ npm run start:debug
+$ pnpm run start:debug
 ```
 
 ## 🧪 Testing
 
 ```bash
 # Unit tests
-$ npm run test
+$ pnpm run test
 
 # E2E tests
-$ npm run test:e2e
+$ pnpm run test:e2e
 
 # Test coverage
-$ npm run test:cov
+$ pnpm run test:cov
 
 # Watch mode
-$ npm run test:watch
+$ pnpm run test:watch
 ```
 
 ## 🔐 API Endpoints

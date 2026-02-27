@@ -1,8 +1,8 @@
-import { ProfileController } from '@api/controllers/profile.controller';
-import { CreateProfileDto } from '@api/dto/create-profile.dto';
-import { ProfileService } from '@application/services/profile.service';
+import { ProfileController } from '@api/profile/profile.controller';
+import { CreateProfileDto } from '@api/profile/create-profile.dto';
+import { ProfileService } from '@application/profile/profile.service';
 import { ResponseService } from '@application/services/response.service';
-import { Profile } from '@domain/entities/Profile';
+import { Profile } from '@domain/profile';
 import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { TestingModule } from '@nestjs/testing/testing-module';
@@ -22,6 +22,7 @@ describe('Profile Controller', () => {
             create: jest.fn(),
             find: jest.fn(),
             findById: jest.fn(),
+            findByAuthId: jest.fn(),
             findByRole: jest.fn(),
             updateMyProfile: jest.fn(),
             isProfileComplete: jest.fn(),
@@ -158,5 +159,33 @@ describe('Profile Controller', () => {
     expect(has(data, 'data')).toBeTruthy();
     expect(data.data.name).toBe('Updated Name');
     expect(data.message).toBe('Profile updated successfully');
+  });
+
+  it('should get my profile', async () => {
+    const userId = faker.string.uuid();
+    const profile: Profile = {
+      id: faker.string.uuid(),
+      authId: userId,
+      name: faker.person.firstName(),
+      lastname: faker.person.lastName(),
+      age: faker.number.int({ min: 18, max: 80 }),
+    };
+
+    jest.spyOn(service, 'findByAuthId').mockImplementation(async () => profile);
+    const data = await controller.getMyProfile(userId);
+
+    expect(data).toBeDefined();
+    expect(has(data, 'data')).toBeTruthy();
+    expect(data.data.id).toBe(profile.id);
+    expect(data.message).toBe('Profile retrieved successfully');
+  });
+
+  it('should throw NotFoundException when my profile not found', async () => {
+    const userId = faker.string.uuid();
+    jest.spyOn(service, 'findByAuthId').mockImplementation(async () => null);
+
+    await expect(controller.getMyProfile(userId)).rejects.toThrow(
+      'Profile not found',
+    );
   });
 });

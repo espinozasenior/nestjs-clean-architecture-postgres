@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { Profile } from '@domain/entities/Profile';
+import { Profile } from '@domain/profile';
 
 /**
  * Domain Service for Profile Business Logic

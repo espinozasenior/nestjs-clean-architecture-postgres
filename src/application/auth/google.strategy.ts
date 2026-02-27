@@ -6,7 +6,7 @@ import {
   GOOGLE_CLIENT_SECRET,
   GOOGLE_CALLBACK_URL,
 } from '@constants';
-import { AuthService } from '@application/services/auth.service';
+import { AuthService } from '@application/auth/auth.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {

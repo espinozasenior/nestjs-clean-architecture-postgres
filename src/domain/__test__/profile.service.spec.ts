@@ -1,5 +1,5 @@
 import { LoggerService } from '@application/services/logger.service';
-import { ProfileService } from '@application/services/profile.service';
+import { ProfileService } from '@application/profile/profile.service';
 import { ProfileDomainService } from '@domain/services/profile-domain.service';
 import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
@@ -62,6 +62,12 @@ describe('User Service', () => {
   it('should find user by id', async () => {
     const userId = faker.string.uuid();
     const data = await service.findById(userId);
+    expect(data).toBeNull(); // Mock returns null
+  });
+
+  it('should find user by auth id', async () => {
+    const authId = faker.string.uuid();
+    const data = await service.findByAuthId(authId);
     expect(data).toBeNull(); // Mock returns null
   });
 
