@@ -140,4 +140,23 @@ describe('constants.ts validation', () => {
       expect(constants.GRAFANA_PORT).toBe(3000);
     });
   });
+
+  it('keeps explicit empty-string jwt durations because nullish-coalescing is used', () => {
+    jest.resetModules();
+    process.env = {
+      ...originalEnv,
+      EMAIL_ENCRYPTION_KEY:
+        '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+      EMAIL_BLIND_INDEX_SECRET: 'blind-secret',
+      JWT_EXPIRATION_TIME: '',
+      JWT_REFRESH_EXPIRATION_TIME: '',
+    };
+
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const constants = require('../constants');
+      expect(constants.JWT_EXPIRATION_TIME).toBe('');
+      expect(constants.JWT_REFRESH_EXPIRATION_TIME).toBe('');
+    });
+  });
 });

@@ -3,7 +3,6 @@ import { AuthController } from '@api/auth';
 import { HelloController } from '@api/hello';
 import { ProfileController } from '@api/profile';
 import { ApplicationModule } from '@application/application.module';
-import { ApiExceptionFilter } from '@application/filters/api-exception.filter';
 import { ResponseInterceptor } from '@application/interceptors/response.interceptor';
 import { LoggerMiddleware } from '@application/middlewere/logger.middleware';
 import { ResponseService } from '@application/services/response.service';
@@ -12,7 +11,7 @@ import { TerminusOptionsService } from '@infrastructure/shared/health/terminus-o
 import { LoggerModule } from '@infrastructure/shared/logger/logger.module';
 import { HttpModule } from '@nestjs/axios';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TerminusModule } from '@nestjs/terminus';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
@@ -36,10 +35,6 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
   providers: [
     TerminusOptionsService,
     ResponseService,
-    {
-      provide: APP_FILTER,
-      useClass: ApiExceptionFilter,
-    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,

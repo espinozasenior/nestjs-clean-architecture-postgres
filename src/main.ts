@@ -11,8 +11,11 @@ moduleAlias.addAliases({
 });
 
 // App modules
-import { APP_PORT } from '@constants';
-import { RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ProblemDetailsFilter } from '@application/filters/problem-details.filter';
+import { ProblemDetailsValidationPipe } from '@application/pipes/problem-details-validation.pipe';
+import { DEFAULT_PROBLEM_TYPE_BASE_URL } from '@application/shared/errors';
+import { APP_PORT, NODE_ENV } from '@constants';
+import { RequestMethod, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
@@ -32,8 +35,17 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
-  app.useGlobalPipes(new ValidationPipe({
+  app.useGlobalFilters(
+    new ProblemDetailsFilter({
+      includeStackTrace: NODE_ENV !== 'production',
+      problemTypeBaseUrl:
+        process.env.PROBLEM_TYPE_BASE_URL || DEFAULT_PROBLEM_TYPE_BASE_URL,
+    }),
+  );
+
+  app.useGlobalPipes(new ProblemDetailsValidationPipe({
     whitelist: true,
+    transform: true,
     forbidNonWhitelisted: true,
   }));
   app.use(cookieParser());
