@@ -1,5 +1,5 @@
 import { SuccessResponseDto } from '@api/dto/common/api-response.dto';
-import { CreateProfileDto } from '@api/profile/create-profile.dto';
+import { CreateProfileRequestDto } from '@api/profile/create-profile-request.dto';
 import { UpdateProfileDto } from '@api/profile/update-profile.dto';
 import { Roles } from '@application/auth/decorators/roles.decorator';
 import { RolesGuard } from '@application/auth/guards/roles.guard';
@@ -71,7 +71,7 @@ export class ProfileController {
     description: 'The user has been successfully created',
     type: Profile,
   })
-  async create(@Body() profile: CreateProfileDto): Promise<SuccessResponseDto<Profile>> {
+  async create(@Body() profile: CreateProfileRequestDto): Promise<SuccessResponseDto<Profile>> {
     const newProfile = await this.profileService.create(profile);
     return this.responseService.created(newProfile, 'Profile created successfully');
   }

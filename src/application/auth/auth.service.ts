@@ -11,10 +11,10 @@ import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
-import { LoginAuthDto } from '@api/auth/login-auth.dto';
+import { LoginRequestDto } from '@api/auth/login-request.dto';
 import { MobileAppleAuthDto } from '@api/auth/mobile-apple-auth.dto';
 import { MobileGoogleAuthDto } from '@api/auth/mobile-google-auth.dto';
-import { RegisterAuthDto } from '@api/auth/register-auth.dto';
+import { RegisterRequestDto } from '@api/auth/register-request.dto';
 import {
   AppleAuthUserPayload,
   CreateAppleAuthUserCommand,
@@ -61,7 +61,7 @@ export class AuthService {
     private readonly appleOAuthConfig: AppleOAuthConfigService,
   ) {}
 
-  async register(registerDto: RegisterAuthDto): Promise<{
+  async register(registerDto: RegisterRequestDto): Promise<{
     access_token: string;
     refresh_token: string;
     profile: {
@@ -140,7 +140,7 @@ export class AuthService {
     return null;
   }
 
-  async login(loginDto: LoginAuthDto) {
+  async login(loginDto: LoginRequestDto) {
     const { email, password } = loginDto;
     const context = { module: 'AuthService', method: 'login' };
     this.logger.logger(`Attempting to log in user ${email}.`, context);

@@ -15,8 +15,12 @@ import { ProblemDetailsFilter } from '@application/filters/problem-details.filte
 import { ProblemDetailsValidationPipe } from '@application/pipes/problem-details-validation.pipe';
 import { DEFAULT_PROBLEM_TYPE_BASE_URL } from '@application/shared/errors';
 import { APP_PORT, NODE_ENV } from '@constants';
-import { RequestMethod, VersioningType } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import {
+  ClassSerializerInterceptor,
+  RequestMethod,
+  VersioningType,
+} from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
@@ -48,6 +52,9 @@ async function bootstrap() {
     transform: true,
     forbidNonWhitelisted: true,
   }));
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector)),
+  );
   app.use(cookieParser());
 
   // Swagger configuration

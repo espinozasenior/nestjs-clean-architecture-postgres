@@ -1,10 +1,10 @@
-import { AuthResponseDto, TokenRefreshResponseDto } from '@api/auth/auth-reponse.dto';
+import { AuthResponseDto, TokenRefreshResponseDto } from '@api/auth/auth-response.dto';
 import { ChangePasswordDto } from '@api/auth/change-password.dto';
-import { LoginAuthDto } from '@api/auth/login-auth.dto';
+import { LoginRequestDto } from '@api/auth/login-request.dto';
 import { MobileAppleAuthDto } from '@api/auth/mobile-apple-auth.dto';
 import { MobileGoogleAuthDto } from '@api/auth/mobile-google-auth.dto';
 import { RefreshTokenDto } from '@api/auth/refresh-token.dto';
-import { RegisterAuthDto } from '@api/auth/register-auth.dto';
+import { RegisterRequestDto } from '@api/auth/register-request.dto';
 import { CurrentUserId } from '@application/decorators/current-user.decorator';
 import { LoggingInterceptor } from '@application/interceptors/logging.interceptor';
 import { AuthService } from '@application/auth/auth.service';
@@ -53,7 +53,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User successfully registered.' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
-  async register(@Body() registerDto: RegisterAuthDto) {
+  async register(@Body() registerDto: RegisterRequestDto) {
     const result = await this.authService.register(registerDto);
     return this.responseService.created(
       result,
@@ -66,7 +66,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Log in a user' })
   @ApiResponse({ status: 200, description: 'User successfully logged in.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async login(@Body() loginDto: LoginAuthDto) {
+  async login(@Body() loginDto: LoginRequestDto) {
     const result = await this.authService.login(loginDto);
     return this.responseService.success('Login successful', result);
   }
