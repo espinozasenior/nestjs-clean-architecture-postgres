@@ -104,6 +104,19 @@ src/
     └── utils/
 ```
 
+### Why this structure works well for AI code agents
+
+This repository keeps **Clean Architecture boundaries** and applies a **Vertical Slice + Feature-First** workflow for day-to-day changes.
+
+- **Feature-local context:** related API, application, domain, and infrastructure artifacts stay close by feature name (`auth`, `profile`), so agents can retrieve less noise.
+- **Safer edits:** strict layer boundaries reduce accidental cross-layer changes when generating patches.
+- **Better semantic navigation:** vertical slices make end-to-end flows easier to trace (`api/auth -> application/auth -> domain/auth -> infrastructure/auth`), which improves edit precision in tools like Cursor and Claude.
+
+Practitioner references:
+- Vertical Slice Architecture (Jimmy Bogard): https://www.jimmybogard.com/vertical-slice-architecture/
+- Cursor codebase indexing and semantic retrieval: https://docs.cursor.com/en/context/codebase-indexing
+- Claude Code context and workflow best practices: https://docs.anthropic.com/en/docs/claude-code/best-practices
+
 ## 🏗️ Architecture Overview
 
 ### Layer Architecture
