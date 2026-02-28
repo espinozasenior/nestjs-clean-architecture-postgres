@@ -8,6 +8,8 @@
 4. ALWAYS use feature folders within layers
 5. ALWAYS update barrel exports (`index.ts`) when adding files
 6. RUN `pnpm run build` after structural changes
+7. **DTO Naming**: Request DTOs = `*RequestDto`, Response DTOs = `*ResponseDto`
+8. **Response Transformation**: Use `@Exclude()` class + `@Expose()` per field
 
 ## Refactoring Rules
 

@@ -1,5 +1,5 @@
 import { ProfileController } from '@api/profile/profile.controller';
-import { CreateProfileDto } from '@api/profile/create-profile.dto';
+import { CreateProfileRequestDto } from '@api/profile/create-profile-request.dto';
 import { ProfileService } from '@application/profile/profile.service';
 import { ResponseService } from '@application/services/response.service';
 import { Profile } from '@domain/profile';
@@ -37,7 +37,7 @@ describe('Profile Controller', () => {
   });
 
   it('should create a profile', async () => {
-    const createPayload: CreateProfileDto = {
+    const createPayload: CreateProfileRequestDto = {
       authId: faker.string.uuid(),
       name: faker.person.firstName(),
       lastname: faker.person.lastName(),

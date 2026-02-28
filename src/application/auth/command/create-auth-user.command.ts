@@ -1,8 +1,8 @@
-import { RegisterAuthDto } from '@api/auth/register-auth.dto';
+import { RegisterRequestDto } from '@api/auth/register-request.dto';
 
 export class CreateAuthUserCommand {
   constructor(
-    public readonly registerAuthDto: RegisterAuthDto,
+    public readonly registerAuthDto: RegisterRequestDto,
     public readonly authId: string,
     public readonly profileId: string,
   ) {}

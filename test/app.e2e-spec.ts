@@ -2,7 +2,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import * as request from 'supertest';
 import { faker } from '@faker-js/faker';
-import { INestApplication, VersioningType } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  INestApplication,
+  VersioningType,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { ProblemDetailsFilter } from '../src/application/filters/problem-details.filter';
 import { ProblemDetailsValidationPipe } from '../src/application/pipes/problem-details-validation.pipe';
 import { DEFAULT_PROBLEM_TYPE_BASE_URL } from '../src/application/shared/errors';
@@ -51,6 +56,9 @@ describe('App (e2e)', () => {
         transform: true,
         forbidNonWhitelisted: true,
       }),
+    );
+    app.useGlobalInterceptors(
+      new ClassSerializerInterceptor(app.get(Reflector)),
     );
     await app.init();
 
@@ -111,6 +119,7 @@ describe('App (e2e)', () => {
         });
       expect([200, 201]).toContain(response.status);
       expect(response.body?.data?.access_token).toBeDefined();
+      expect(response.body?.data?.profile?.password).toBeUndefined();
     });
   });
 

@@ -32,6 +32,8 @@
 12. **Problem Content-Type**: Errors MUST return `application/problem+json`
 13. **No Internals in Prod**: Never expose stack traces/internal paths in production
 14. **Type URI Mapping**: Map enum error codes with `ErrorType` from `application/shared/errors/error-types`
+15. **DTO Naming**: Request DTOs = `*RequestDto`, Response DTOs = `*ResponseDto`
+16. **Response Transformation**: Use `@Exclude()` class + `@Expose()` per field
 
 ## Error Handling Pattern
 

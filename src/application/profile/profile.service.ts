@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { CreateProfileDto } from '@api/profile/create-profile.dto';
+import { CreateProfileRequestDto } from '@api/profile/create-profile-request.dto';
 import { LoggerService } from '@application/services/logger.service';
 import { Profile, IProfileRepository } from '@domain/profile';
 import { Role } from '@domain/shared/enums/role.enum';
@@ -16,7 +16,7 @@ export class ProfileService {
     private readonly profileDomainService: ProfileDomainService,
   ) { }
 
-  async create(createProfileDto: CreateProfileDto): Promise<Profile> {
+  async create(createProfileDto: CreateProfileRequestDto): Promise<Profile> {
     this.logger.logger('Creating profile.', {
       module: 'ProfileService',
       method: 'create',
