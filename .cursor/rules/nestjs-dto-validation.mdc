@@ -1,7 +1,8 @@
 ---
 description: DTO structure with clear request/response naming, validation, transformation, and meaningful Swagger documentation.
-globs: **/*.dto.ts
-alwaysApply: false
+globs: 
+  - "**/*.dto.ts"
+alwaysApply: true
 ---
 
 # NestJS DTO Validation Standards

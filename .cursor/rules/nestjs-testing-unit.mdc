@@ -1,6 +1,7 @@
 ---
 description: Unit test patterns for NestJS including mocking, structure, grouping, and assertions.
-globs: **/*.spec.ts
+globs: 
+  - "**/*.spec.ts"
 alwaysApply: false
 ---
 
@@ -23,11 +24,30 @@ Unit tests verify individual components in isolation. They should:
 
 ```
 src/
-├── users/
-│   ├── users.service.ts
-│   ├── users.service.spec.ts       # Tests next to source file
-│   ├── users.controller.ts
-│   └── users.controller.spec.ts
+├── api/
+│   ├── auth/
+│   │   └── auth.controller.ts
+│   └── profile/
+│       └── profile.controller.ts
+├── application/
+│   ├── auth/
+│   │   └── auth.service.ts
+│   └── __test__/
+│       ├── auth.service.spec.ts
+│       ├── auth.commands.spec.ts
+│       └── profile.controller.spec.ts
+├── domain/
+│   ├── services/
+│   │   └── auth-domain.service.ts
+│   └── __test__/
+│       └── auth-domain.service.spec.ts
+├── infrastructure/
+│   ├── auth/
+│   │   └── auth.repository.ts
+│   └── __test__/
+│       └── profile.repository.spec.ts
+└── __test__/
+    └── constants.spec.ts
 ```
 
 ### Consistent Test Structure
