@@ -1,0 +1,310 @@
+---
+description: Error handling patterns for NestJS using RFC 9457 Problem Details standard with centralized error enums.
+globs: 
+  - "**/*exception*.ts"
+  - "**/*error*.ts"
+  - "**/*filter*.ts"
+  - "**/*.service.ts"
+alwaysApply: true
+---
+
+# NestJS Error Handling Standards (RFC 9457)
+
+## Purpose
+
+Proper error handling ensures:
+- Consistent error response format RFC 9457 across the entire API
+- Clear, actionable error messages for clients
+- No magic strings scattered throughout the codebase
+- Easy debugging and error tracking
+- Security by not exposing internal details
+
+## Core Principle: Consistency Over Specific Approach
+
+The most important aspect of error handling is **consistency**. Choose an approach and apply it uniformly across the entire codebase. Whether you use error enums, error codes, or error constants - the key is that all developers follow the same pattern.
+
+**Never use magic strings** - errors should always be defined in a centralized location.
+
+## Setup
+
+### Installation
+
+```bash
+npm i @sjfrhafe/nest-problem-details
+```
+
+### Global Configuration
+
+```typescript
+// main.ts
+import { ProblemDetailsFilter, ProblemDetailsValidationPipe } from '@sjfrhafe/nest-problem-details';
+import { ErrorType } from './application/shared/errors';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // RFC 9457 error responses
+  app.useGlobalFilters(new ProblemDetailsFilter({
+    includeStackTrace: process.env.NODE_ENV !== 'production',
+    typeUriGenerator: (exception) => {
+      const code = exception.getResponse()?.['code'];
+      return code ? ErrorType[code] ?? 'about:blank' : 'about:blank';
+    },
+  }));
+
+  // Validation errors as Problem Details
+  app.useGlobalPipes(new ProblemDetailsValidationPipe({
+    whitelist: true,
+    transform: true,
+  }));
+
+  await app.listen(3000);
+}
+```
+
+## Response Format
+
+### Standard Error
+```json
+{
+  "type": "https://api.yourapp.com/errors/auth/user-not-found",
+  "title": "User Not Found",
+  "status": 404,
+  "detail": "No user exists with the provided ID",
+  "instance": "/api/v1/users/123",
+  "code": "AUTH_USER_NOT_FOUND"
+}
+```
+
+### Validation Error
+
+```json
+{
+  "type": "https://httpstatuses.com/400",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Validation failed",
+  "errors": [
+    { "field": "email", "message": "must be a valid email" },
+    { "field": "password", "message": "must be at least 8 characters" }
+  ]
+}
+```
+
+## Error Definitions
+
+### File Structure
+
+```
+application/
+└── shared/
+    └── errors/
+        ├── auth.errors.ts
+        ├── profile.errors.ts
+        ├── error-types.ts
+        └── index.ts
+```
+
+### Error Enum + Message Map
+
+#### Good
+
+```typescript
+// application/shared/errors/auth.errors.ts
+export enum AuthError {
+  USER_NOT_FOUND = 'AUTH_USER_NOT_FOUND',
+  EMAIL_EXISTS = 'AUTH_EMAIL_EXISTS',
+  INVALID_CREDENTIALS = 'AUTH_INVALID_CREDENTIALS',
+  TOKEN_EXPIRED = 'AUTH_TOKEN_EXPIRED',
+  UNAUTHORIZED = 'AUTH_UNAUTHORIZED',
+}
+
+export const AuthErrorMessage: Record<AuthError, string> = {
+  [AuthError.USER_NOT_FOUND]: 'User not found',
+  [AuthError.EMAIL_EXISTS]: 'A user with this email already exists',
+  [AuthError.INVALID_CREDENTIALS]: 'Invalid email or password',
+  [AuthError.TOKEN_EXPIRED]: 'Authentication token has expired',
+  [AuthError.UNAUTHORIZED]: 'You are not authorized to perform this action',
+};
+```
+
+### Error Type URIs
+
+```typescript
+// application/shared/errors/error-types.ts
+import { AuthError } from './auth.errors';
+import { ProfileError } from './profile.errors';
+
+const BASE = 'https://api.yourapp.com/errors';
+
+export const ErrorType: Record<string, string> = {
+  // Auth errors
+  [AuthError.USER_NOT_FOUND]: `${BASE}/auth/user-not-found`,
+  [AuthError.EMAIL_EXISTS]: `${BASE}/auth/email-exists`,
+  [AuthError.INVALID_CREDENTIALS]: `${BASE}/auth/invalid-credentials`,
+  [AuthError.TOKEN_EXPIRED]: `${BASE}/auth/token-expired`,
+  [AuthError.UNAUTHORIZED]: `${BASE}/auth/unauthorized`,
+
+  // Profile errors
+  [ProfileError.NOT_FOUND]: `${BASE}/profile/not-found`,
+  [ProfileError.UPDATE_FAILED]: `${BASE}/profile/update-failed`,
+};
+```
+
+### Barrel Export
+
+```typescript
+// application/shared/errors/index.ts
+export * from './auth.errors';
+export * from './profile.errors';
+export * from './error-types';
+```
+
+## Throwing Errors
+
+### Good — Standard NestJS Exceptions (Recommended)
+
+```typescript
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { AuthError, AuthErrorMessage } from '@application/shared/errors';
+
+@Injectable()
+export class AuthService {
+  async findOne(id: string): Promise<User> {
+    const user = await this.userRepository.findOne(id);
+    if (!user) {
+      throw new NotFoundException({
+        code: AuthError.USER_NOT_FOUND,
+        message: AuthErrorMessage[AuthError.USER_NOT_FOUND],
+      });
+    }
+    return user;
+  }
+
+  async create(dto: CreateUserRequestDto): Promise<User> {
+    const existing = await this.userRepository.findByEmail(dto.email);
+    if (existing) {
+      throw new ConflictException({
+        code: AuthError.EMAIL_EXISTS,
+        message: AuthErrorMessage[AuthError.EMAIL_EXISTS],
+      });
+    }
+    return this.userRepository.create(dto);
+  }
+}
+```
+
+### Good — ProblemDetailsException (Full Control)
+
+```typescript
+import { ProblemDetailsException } from '@sjfrhafe/nest-problem-details';
+import { AuthError, AuthErrorMessage, ErrorType } from '@application/shared/errors';
+
+throw new ProblemDetailsException({
+  type: ErrorType[AuthError.USER_NOT_FOUND],
+  title: 'User Not Found',
+  status: 404,
+  detail: AuthErrorMessage[AuthError.USER_NOT_FOUND],
+  code: AuthError.USER_NOT_FOUND,
+});
+```
+
+### Bad — Magic Strings
+
+```typescript
+// ❌ Never do this
+throw new NotFoundException('User not found');
+throw new NotFoundException('Cannot find user');  // Inconsistent message
+throw new Error('Something went wrong');  // Generic, no code
+```
+
+## Validation Before Operations
+
+Always validate entity existence before performing operations.
+
+```typescript
+@Injectable()
+export class ProfileService {
+  async update(id: string, dto: UpdateProfileRequestDto): Promise<Profile> {
+    const profile = await this.profileRepository.findOne(id);
+    if (!profile) {
+      throw new NotFoundException({
+        code: ProfileError.NOT_FOUND,
+        message: ProfileErrorMessage[ProfileError.NOT_FOUND],
+      });
+    }
+
+    // Validate business rules
+    if (profile.status === ProfileStatus.COMPLETED) {
+      throw new BadRequestException({
+        code: ProfileError.CANNOT_MODIFY_COMPLETED,
+        message: ProfileErrorMessage[ProfileError.CANNOT_MODIFY_COMPLETED],
+      });
+    }
+
+    return this.profileRepository.update(id, dto);
+  }
+
+  async delete(id: string): Promise<void> {
+    const profile = await this.profileRepository.findOne(id);
+    if (!profile) {
+      throw new NotFoundException({
+        code: ProfileError.NOT_FOUND,
+        message: ProfileErrorMessage[ProfileError.NOT_FOUND],
+      });
+    }
+    await this.profileRepository.delete(id);
+  }
+}
+```
+
+## HTTP Status Code Mapping
+
+| Scenario | Exception | Status |
+|----------|-----------|--------|
+| Entity not found | `NotFoundException` | 404 |
+| Duplicate/conflict | `ConflictException` | 409 |
+| Invalid input | `BadRequestException` | 400 |
+| Validation failure | Auto via pipe | 400 |
+| Not authenticated | `UnauthorizedException` | 401 |
+| Not authorized | `ForbiddenException` | 403 |
+| Server error | `InternalServerErrorException` | 500 |
+
+## Security (RFC 9457)
+
+| Risk | Mitigation |
+|------|------------|
+| Stack trace exposure | `includeStackTrace: false` in production |
+| Internal path leak | Use generic `instance` or omit |
+| Implementation details | `detail` must be user-friendly, not technical |
+| Sensitive data in errors | Never include passwords, tokens, internal IDs |
+
+## Best Practices
+
+- Use RFC 9457 Problem Details for ALL errors
+- Centralize error codes in enum + message map files
+- Always include `code` field for machine-readable errors
+- Standard NestJS exceptions auto-convert via global filter
+- Validate entity existence before update/delete operations
+- Never expose stack traces in production
+- Group errors by feature - `user.errors.ts`, `order.errors.ts`
+- Use `ErrorType` for consistent type URIs
+- **Never use magic strings** - all error codes/messages in centralized files
+- **Include error codes** - machine-readable codes for client handling
+- **Use appropriate HTTP status codes** - 404 for not found, 409 for conflict, etc.
+- Log appropriately - error level for 5xx, warn level for 4xx
+- Structure error responses consistently - same format for all endpoints
+
+
+## Common Mistakes
+
+- Magic strings instead of error enums
+- Different messages for the same error
+- Inconsistent error response formats
+- Missing error codes (only returning messages)
+- Exposing stack traces in production
+- Not validating entity existence before operations
+- Throwing generic `Error` instead of NestJS exceptions
+- Forgetting to include `code` in exception response
+- Not enabling `ProblemDetailsFilter` globally
+- Catching errors without proper handling or re-throwing
